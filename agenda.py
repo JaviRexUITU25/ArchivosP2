@@ -430,4 +430,32 @@ class AplicacionAgencia:
         else:
             messagebox.showerror("Fallo de integridad", msg)
 
+    def crear_respaldo_zip(self):
+        if not os.path.exists(FILE_DAT) or not os.path.exists(FILE_INDEX):
+            messagebox.showwarning("Reslapdp ZIP", "Se debe tener creado 'contactos.dat' e 'indice.json' antes de crear respaldo")
+            return
+
+        try:
+            fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            nombre_zip = f"respaldo_{fecha}.zip"
+            archivos = [FILE_DAT, FILE_INDEX]
+
+            tamano_original = sum(os.path.getsize(a) for a in archivos)
+
+            with zipfile.ZipFile(nombre_zip, "w", compression=zipfile.ZIP_DEFLATED)as zf:
+                for a in archivos:
+                    zf.write(a)
+
+            tamano_comprimido = os.path.getsize(nombre_zip)
+            reduccion = ((tamano_original - tamano_comprimido) / tamano_original * 100) if tamano_original >0 else 0
+            messagebox.showinfo(
+                "Respaldo Comprimido Creado",
+                f"Archivo: {nombre_zip}\n\n"
+                f"Tamaño original (contactos + índice): {tamano_original} bytes\n"
+                f"Tamaño comprimido (ZIP): {tamano_comprimido} bytes\n"
+                f"Porcentaje de reducción: {reduccion:.2f}%",
+            )
+        except Exception as e:
+            messagebox.showerror("Error en respaldo", str(e))
+
     
