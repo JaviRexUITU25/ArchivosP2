@@ -150,4 +150,61 @@ class GestorArchivos:
         self.actualizar_hash()
         return num_registros, pos_escritura
 
-    
+class AplicacionAgencia:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Agenda de contactos - Acceso (URL)")
+        self.root.geometry("760x540")
+        self.root.configure(bg="#f4f6f9")
+
+        self.estilo = ttk.Style()
+        if "clam" in self.estilo.theme_names():
+            self.estilo.theme_use("clam")
+        self.estilo.configure("TFrame", background="#f4f6f9")
+        self.estilo.configure("TLabel", background="#f4f6f9", font=("Segoe UI", 10))
+        self.estilo.configure("Header.TLabel", font=("Segoe UI", 14, "bold"), foreground="#1e293b")
+        self.estilo.configure("Status.TLabel", background="#e2e8f0", foreground="#334155", font=("Consolas", 9), padding=6)
+        self.estilo.configure("TButton", font=("Segoe UI", 9, "bold"), padding=6)
+        self.gestor = GestorArchivos()
+        self.crear_menu()
+        self.refrescar_tabla()
+
+        ok, msg = self.gestor.verificar_integridad()
+        if not ok:
+            messagebox.showwarning("Advertencia de integridad", msg)
+
+    def crear_menu(self):
+        menubar = tk.Menu(self.root)
+        menu_contactos = tk.Menu(menubar, tearoff=0)
+        menu_contactos.add_command(label="Agregar contacto", command=self.guardar_ui)
+        menu_contactos.add_command(label="Buscar por ID", command=self.buscar_ui)
+        menu_contactos.add_command(label="Modificar contacto", command=self.modificar_ui)
+        menubar.add_cascade(label="Contactos", menu=menu_contactos)
+
+        menu_exportar = tk.Menu(menubar, tearoff=0)
+        menu_exportar.add_command(label="Exportar a JSON", command=self.exportar_json)
+        menu_exportar.add_command(label="Generar reporte PDF", command=self.exportar_pdf)
+        menubar.add_cascade(label="Exportar", menu=menu_exportar)
+
+
+        menu_herr = tk.Menu(menubar, tearoff=0)
+        menu_herr.add_command(label="Verificar integridad (SHA-256)", command=self.verificar_integridad_ui)
+        menu_herr.add_command(label="Crear respaldo ZIP", command=self.crear_respaldo_zip)
+        menu_herr.add_command(label="Información del archivo", command=self.mostrar_info_archivo)
+        menubar.add_cascade(label="Herramientas", menu=menu_herr)
+
+        menu_ayuda = tk.Menu(menubar, tearoff=0)
+        menu_ayuda.add_command(
+            label= "Acerca de",
+            command=lambda: messagebox.showinfo(
+                "Ayuda",
+                "Agenda de Contactos con Acceso Aleatorio\n"
+                "Universidad Rafael Landivar Quetzaltenango"
+                "Tamaño fijo por registro: 100 bytes (UTF-8)"
+            ),
+        )
+        menubar.add_cascade(label="Ayuda", menu=menu_ayuda)
+
+        self.root.config(menu=menubar)
+
+    pass
