@@ -270,3 +270,61 @@ class AplicacionAgencia:
         self.var_status = tk.StringVar(value="Posicion del puntero (tell): 0 bytes | listo")
         ttk.Label(self.root, textvariable=self.var_status, style="Status.TLabel", anchor="w").pack(fill=tk.X, side= tk.BOTTOM)
 
+    def validar_campos(self):
+        id_str = self.var_id.get().strip()
+        if not id_str:
+            raise ValueError("El campo ID es obligatorio")
+
+        try:
+            id_int = int(id_str)
+            if id_int < 0:
+                raise ValueError
+        except ValueError:
+            raise ValueError("El ID debe ser un numero entero positivo")
+
+        nom = self.var_nom.get().strip()
+        tel = self.var_tel.get().strip()
+        cor = self.var_cor.get().strip()
+        ciu = self.var_ciu.get().strip()
+
+        if not all([nom, tel, cor, ciu]):
+            raise ValueError("Todos los campos son obligatorios")
+        return id_int, nom, tel, cor, ciu
+
+    def guardar_ui(self):
+        try:
+            id_int, nom, tel, cor, ciu = self.validar_campos()
+            num_reg, pos_ini, pos_fin = self.gestor.agregar_contacto(id_int, nom, tel, cor, ciu)
+            self.var_status.set(f"Contacto agregado en registro #{num_reg} | Puntero inicial (tell): {pos_ini} B -> Final (tell) {pos_fin} B")
+            self.refrescar_tabla()
+            self.limpiar_form()
+            messagebox.showinfo(f"Contacto guardado en el registro #{num_reg}\nPosicion en archivo (tell): {pos_ini} bytes")
+
+        except Exception as e:
+            messagebox.showerror("Error al agregar", str(e))
+
+    def buscar_ui(self):
+        id_buscar = simpledialog.askstring("Buscar por ID", "Ingrese el ID numerico del contacto: ")
+        if not id_buscar:
+            return
+        try:
+            id_int = int(id_buscar.strip())
+            contacto, pos_tell = self.gestor.buscar_contacto(id_int)
+
+            if contacto:
+                self.var_id.set(str(contacto["id"]))
+                self.var_nom.set(contacto["nombre"])
+                self.var_tel.set(contacto["telefono"])
+                self.var_cor.set(contacto["correo"])
+                self.var_ciu.set(contacto["ciudad"])
+                num_reg = self.gestor.indice[str(id_int)]
+                self.var_status.set(f"Búsqueda por índice -> Reg #{num_reg} | Posición exacta con seek/tell: {pos_tell} bytes")
+                messagebox.showinfo("Contacto Encontrado", f"Registro #{num_reg} ubicado directamente.\nPosición en archivo (tell): {pos_tell} bytes.")
+            else:
+                messagebox.showwarning("No encontrado", f"El ID {id_int} No existe en el indice")
+        except ValueError:
+            messagebox.showerror("Error", "El ID a buscar debe ser un numero entero")
+
+        except Exception as e:
+            messagebox.showerror("Error de lectura", str(e))
+        
