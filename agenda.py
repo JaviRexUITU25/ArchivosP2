@@ -68,4 +68,18 @@ class GestorArchivos:
         except Exception as e:
             return False, f"No se pudo verificar la integridad {e}"
 
+    def ajustar_campo_utf8(self, texto, largo_bytes):
+        b_texto = str(texto).strip().encode("utf-8")[:largo_bytes]
+        texto_seguro = b_texto.decode("utf-8", errors="ignore")
+        faltantes = largo_bytes - len(texto_seguro.encode("utf-8"))
+        return texto_seguro + (" " * faltantes)
+
+    def formatear_registro(self, id_c, nombre, tel, correo, ciudad):
+        c_id = self.ajustar_campo_utf8(id_c, 10)
+        c_nom = self.ajustar_campo_utf8(nombre, 30)
+        c_tel = self.ajustar_campo_utf8(tel, 15)
+        c_cor = self.ajustar_campo_utf8(correo, 25)
+        c_ciu = self.ajustar_campo_utf8(ciudad, 20)
+        return c_id + c_nom + c_tel + c_cor + c_ciu
+
     
