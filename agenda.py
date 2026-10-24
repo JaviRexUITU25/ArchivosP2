@@ -9,6 +9,7 @@ from fpdf import FPDF
 RECORD_SIZE = 100
 FILE_DAT = "contactos.dat"
 FILE_INDEX = "indice.json"
+FILE_HASH = "contactos.sha256"
 FILE_EXPORT_JSON = "contactos_exportados.json"
 FILE_EXPORT_PDF = "reporte_contactos.pdf"
 
@@ -48,4 +49,23 @@ class GestorArchivos:
         with open(FILE_DAT, "rb") as f:
             sha256.update(f.read())
         return sha256.hexdigest()
+
+    def actualizar_hash(self):
+        with open(FILE_HASH, "w", encoding="utf-8") as f:
+            f.write(self.calcular_hash())
+
+    def verificar_integridad(self):
+        if not os.path.exists(FILE_DAT) or not os.path.exists(FILE_HASH):
+            return True, "Archivos de datos o hash aun no generados"
+        try:
+            with open(FILE_HASH, "r", encoding="utf-8")as f:
+                hash_guardado = f.read().strip()
+            hash_actual = self.calcular_hash()
+            if hash_guardado == hash_actual:
+                return True, f"Integridad verificado correctamente. \nSHA-256: {hash_actual[:24]}..."
+            else:
+                return False, "El archivo 'contactos.dat' fue modificado fuera de la aplicacion"
+        except Exception as e:
+            return False, f"No se pudo verificar la integridad {e}"
+
     
