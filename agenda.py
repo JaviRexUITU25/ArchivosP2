@@ -6,12 +6,14 @@ import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog
 from fpdf import FPDF
 from datetime import datetime
+
 RECORD_SIZE = 100
 FILE_DAT = "contactos.dat"
 FILE_INDEX = "indice.json"
 FILE_HASH = "contactos.sha256"
 FILE_EXPORT_JSON = "contactos_exportados.json"
 FILE_EXPORT_PDF = "reporte_contactos.pdf"
+
 
 class GestorArchivos:
     def __init__(self):
@@ -29,15 +31,15 @@ class GestorArchivos:
             messagebox.showerror("Error de permisos", f"No hay permisos de lectura para {FILE_INDEX}")
             self.indice = {}
         except json.JSONDecodeError:
-            messagebox.showerror("Archivo corrupto", f"El indice {FILE_INDEX} esta corrupto")
+            messagebox.showerror("Archivo corrupto", f"El índice {FILE_INDEX} está corrupto")
             self.indice = {}
         except Exception as e:
-            messagebox.showerror("Error", f"Error al cargar el indice {e}")
+            messagebox.showerror("Error", f"Error al cargar el índice {e}")
             self.indice = {}
 
     def guardar_indice(self):
         try:
-            with open(FILE_INDEX, "w", encoding="utf-8")as f:
+            with open(FILE_INDEX, "w", encoding="utf-8") as f:
                 json.dump(self.indice, f, indent=4, ensure_ascii=False)
         except PermissionError:
             raise PermissionError(f"Sin permisos de escritura en {FILE_INDEX}")
@@ -45,7 +47,8 @@ class GestorArchivos:
     def calcular_hash(self):
         if not os.path.exists(FILE_DAT):
             return ""
-        sha256 = hashlib-sha256()
+        # CORRECCIÓN 1: hashlib.sha256() con punto en lugar de guion
+        sha256 = hashlib.sha256()
         with open(FILE_DAT, "rb") as f:
             sha256.update(f.read())
         return sha256.hexdigest()
@@ -56,15 +59,15 @@ class GestorArchivos:
 
     def verificar_integridad(self):
         if not os.path.exists(FILE_DAT) or not os.path.exists(FILE_HASH):
-            return True, "Archivos de datos o hash aun no generados"
+            return True, "Archivos de datos o hash aún no generados"
         try:
-            with open(FILE_HASH, "r", encoding="utf-8")as f:
+            with open(FILE_HASH, "r", encoding="utf-8") as f:
                 hash_guardado = f.read().strip()
             hash_actual = self.calcular_hash()
             if hash_guardado == hash_actual:
-                return True, f"Integridad verificado correctamente. \nSHA-256: {hash_actual[:24]}..."
+                return True, f"Integridad verificada correctamente.\nSHA-256: {hash_actual[:24]}..."
             else:
-                return False, "El archivo 'contactos.dat' fue modificado fuera de la aplicacion"
+                return False, "El archivo 'contactos.dat' fue modificado fuera de la aplicación"
         except Exception as e:
             return False, f"No se pudo verificar la integridad {e}"
 
@@ -81,8 +84,6 @@ class GestorArchivos:
         c_cor = self.ajustar_campo_utf8(correo, 25)
         c_ciu = self.ajustar_campo_utf8(ciudad, 20)
         return c_id + c_nom + c_tel + c_cor + c_ciu
-
-    # Informacion del contacto
 
     def agregar_contacto(self, id_c, nombre, tel, correo, ciudad):
         str_id = str(id_c)
@@ -116,12 +117,12 @@ class GestorArchivos:
         num_registro = self.indice[str_id]
         desplazamiento = num_registro * RECORD_SIZE
 
-        with open(FILE_DAT, "r", encoding="utf-8")as f:
+        with open(FILE_DAT, "r", encoding="utf-8") as f:
             f.seek(desplazamiento)
             pos_actual = f.tell()
             raw_bytes = f.read(RECORD_SIZE).encode("utf-8")
         if len(raw_bytes) < RECORD_SIZE:
-            raise IOError("El registro está imcompleto o el está corrupto")
+            raise IOError("El registro está incompleto o el archivo está corrupto")
 
         contacto = {
             "id": int(raw_bytes[0:10].decode("utf-8", errors="ignore").strip()),
@@ -132,17 +133,18 @@ class GestorArchivos:
         }
         return contacto, pos_actual
 
-    def mod_contacto(self, id_c, nombre, tel, correo, ciudad):
+    # CORRECCIÓN 2: Nombre unificado a modificar_contacto
+    def modificar_contacto(self, id_c, nombre, tel, correo, ciudad):
         str_id = str(id_c)
         if str_id not in self.indice:
-            raise KeyError(f"El contado con ID {id_c} no existe")
+            raise KeyError(f"El contacto con ID {id_c} no existe")
         if not os.path.exists(FILE_DAT):
             raise FileNotFoundError("El archivo 'contactos.dat' no existe")
 
         num_registros = self.indice[str_id]
         registro_nuevo = self.formatear_registro(id_c, nombre, tel, correo, ciudad)
 
-        with open(FILE_DAT, "r+", encoding="utf-8")as f:
+        with open(FILE_DAT, "r+", encoding="utf-8") as f:
             f.seek(num_registros * RECORD_SIZE)
             pos_escritura = f.tell()
             f.write(registro_nuevo)
@@ -150,10 +152,11 @@ class GestorArchivos:
         self.actualizar_hash()
         return num_registros, pos_escritura
 
+
 class AplicacionAgencia:
     def __init__(self, root):
         self.root = root
-        self.root.title("Agenda de contactos - Acceso (URL)")
+        self.root.title("Agenda de contactos - Acceso Aleatorio (URL)")
         self.root.geometry("760x540")
         self.root.configure(bg="#f4f6f9")
 
@@ -165,8 +168,11 @@ class AplicacionAgencia:
         self.estilo.configure("Header.TLabel", font=("Segoe UI", 14, "bold"), foreground="#1e293b")
         self.estilo.configure("Status.TLabel", background="#e2e8f0", foreground="#334155", font=("Consolas", 9), padding=6)
         self.estilo.configure("TButton", font=("Segoe UI", 9, "bold"), padding=6)
+
         self.gestor = GestorArchivos()
         self.crear_menu()
+        # CORRECCIÓN 3: Llamar a crear_interfaz() antes de refrescar_tabla()
+        self.crear_interfaz()
         self.refrescar_tabla()
 
         ok, msg = self.gestor.verificar_integridad()
@@ -186,7 +192,6 @@ class AplicacionAgencia:
         menu_exportar.add_command(label="Generar reporte PDF", command=self.exportar_pdf)
         menubar.add_cascade(label="Exportar", menu=menu_exportar)
 
-
         menu_herr = tk.Menu(menubar, tearoff=0)
         menu_herr.add_command(label="Verificar integridad (SHA-256)", command=self.verificar_integridad_ui)
         menu_herr.add_command(label="Crear respaldo ZIP", command=self.crear_respaldo_zip)
@@ -195,12 +200,12 @@ class AplicacionAgencia:
 
         menu_ayuda = tk.Menu(menubar, tearoff=0)
         menu_ayuda.add_command(
-            label= "Acerca de",
+            label="Acerca de",
             command=lambda: messagebox.showinfo(
                 "Ayuda",
                 "Agenda de Contactos con Acceso Aleatorio\n"
-                "Universidad Rafael Landivar Quetzaltenango"
-                "Tamaño fijo por registro: 100 bytes (UTF-8)"
+                "Universidad Rafael Landívar Quetzaltenango\n"
+                "Tamaño fijo por registro: 100 bytes (UTF-8)",
             ),
         )
         menubar.add_cascade(label="Ayuda", menu=menu_ayuda)
@@ -211,9 +216,9 @@ class AplicacionAgencia:
         contenedor = ttk.Frame(self.root, padding=15)
         contenedor.pack(fill=tk.BOTH, expand=True)
 
-        ttk.Label(contenedor, text="Gestion de contactos (Acceso Aleatorio)", style="Header.TLabel").pack(anchor="w", pady=(0,10))
+        ttk.Label(contenedor, text="Gestión de contactos (Acceso Aleatorio)", style="Header.TLabel").pack(anchor="w", pady=(0, 10))
 
-        form_frame = ttk.LabelFrame(contenedor, text="Datos del contacto ", padding=12)
+        form_frame = ttk.LabelFrame(contenedor, text=" Datos del contacto ", padding=12)
         form_frame.pack(fill=tk.X, pady=5)
 
         self.var_id = tk.StringVar()
@@ -238,7 +243,6 @@ class AplicacionAgencia:
         ttk.Entry(form_frame, textvariable=self.var_ciu, width=22).grid(row=2, column=1, sticky="w", padx=5, pady=4)
 
         # Botones
-
         btn_frame = ttk.Frame(contenedor)
         btn_frame.pack(fill=tk.X, pady=10)
 
@@ -267,8 +271,8 @@ class AplicacionAgencia:
         self.tabla.pack(fill=tk.BOTH, expand=True, pady=5)
         self.tabla.bind("<<TreeviewSelect>>", self.seleccionar_fila)
 
-        self.var_status = tk.StringVar(value="Posicion del puntero (tell): 0 bytes | listo")
-        ttk.Label(self.root, textvariable=self.var_status, style="Status.TLabel", anchor="w").pack(fill=tk.X, side= tk.BOTTOM)
+        self.var_status = tk.StringVar(value="Posición del puntero (tell): 0 bytes | Listo")
+        ttk.Label(self.root, textvariable=self.var_status, style="Status.TLabel", anchor="w").pack(fill=tk.X, side=tk.BOTTOM)
 
     def validar_campos(self):
         id_str = self.var_id.get().strip()
@@ -280,7 +284,7 @@ class AplicacionAgencia:
             if id_int < 0:
                 raise ValueError
         except ValueError:
-            raise ValueError("El ID debe ser un numero entero positivo")
+            raise ValueError("El ID debe ser un número entero positivo")
 
         nom = self.var_nom.get().strip()
         tel = self.var_tel.get().strip()
@@ -298,13 +302,13 @@ class AplicacionAgencia:
             self.var_status.set(f"Contacto agregado en registro #{num_reg} | Puntero inicial (tell): {pos_ini} B -> Final (tell) {pos_fin} B")
             self.refrescar_tabla()
             self.limpiar_form()
-            messagebox.showinfo(f"Contacto guardado en el registro #{num_reg}\nPosicion en archivo (tell): {pos_ini} bytes")
-
+            # CORRECCIÓN 4: Se agregó el título "Éxito" a showinfo
+            messagebox.showinfo("Éxito", f"Contacto guardado en el registro #{num_reg}\nPosición en archivo (tell): {pos_ini} bytes")
         except Exception as e:
             messagebox.showerror("Error al agregar", str(e))
 
     def buscar_ui(self):
-        id_buscar = simpledialog.askstring("Buscar por ID", "Ingrese el ID numerico del contacto: ")
+        id_buscar = simpledialog.askstring("Buscar por ID", "Ingrese el ID numérico del contacto: ")
         if not id_buscar:
             return
         try:
@@ -321,13 +325,11 @@ class AplicacionAgencia:
                 self.var_status.set(f"Búsqueda por índice -> Reg #{num_reg} | Posición exacta con seek/tell: {pos_tell} bytes")
                 messagebox.showinfo("Contacto Encontrado", f"Registro #{num_reg} ubicado directamente.\nPosición en archivo (tell): {pos_tell} bytes.")
             else:
-                messagebox.showwarning("No encontrado", f"El ID {id_int} No existe en el indice")
+                messagebox.showwarning("No encontrado", f"El ID {id_int} no existe en el índice")
         except ValueError:
-            messagebox.showerror("Error", "El ID a buscar debe ser un numero entero")
-
+            messagebox.showerror("Error", "El ID a buscar debe ser un número entero")
         except Exception as e:
             messagebox.showerror("Error de lectura", str(e))
-
 
     def modificar_ui(self):
         try:
@@ -339,7 +341,12 @@ class AplicacionAgencia:
         except Exception as e:
             messagebox.showerror("Error al Modificar", str(e))
 
+    # CORRECCIÓN 5: Separación correcta de limpiar_form y seleccionar_fila
     def limpiar_form(self):
+        for var in (self.var_id, self.var_nom, self.var_tel, self.var_cor, self.var_ciu):
+            var.set("")
+
+    def seleccionar_fila(self, event):
         seleccion = self.tabla.selection()
         if seleccion:
             valores = self.tabla.item(seleccion[0], "values")
@@ -367,9 +374,9 @@ class AplicacionAgencia:
                 c, _ = self.gestor.buscar_contacto(id_str)
                 if c:
                     lista.append(c)
-            with open(FILE_EXPORT_JSON, "w", encoding="utf-8")as f:
+            with open(FILE_EXPORT_JSON, "w", encoding="utf-8") as f:
                 json.dump(lista, f, indent=4, ensure_ascii=False)
-            messagebox.showinfo("Exportar JSON", f"se exportaron {len(lista)} contactos a '{FILE_EXPORT_JSON}'")
+            messagebox.showinfo("Exportar JSON", f"Se exportaron {len(lista)} contactos a '{FILE_EXPORT_JSON}'")
             return True
         except Exception as e:
             messagebox.showerror("Error al exportar JSON", str(e))
@@ -386,11 +393,11 @@ class AplicacionAgencia:
             pdf = FPDF()
             pdf.add_page()
             pdf.set_font("Helvetica", "B", 15)
-            pdf.cell(0,10, "Reporte de Agenda de contactos", ln=True, align="C")
+            pdf.cell(0, 10, "Reporte de Agenda de Contactos", ln=True, align="C")
 
             pdf.set_font("Helvetica", "", 10)
             fecha_gen = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            pdf.cell(0,8, f"Fecha de generacion: {fecha_gen}", ln=True, align="C")
+            pdf.cell(0, 8, f"Fecha de generacion: {fecha_gen}", ln=True, align="C")
             pdf.ln(6)
 
             pdf.set_font("Helvetica", "B", 10)
@@ -402,7 +409,6 @@ class AplicacionAgencia:
 
             pdf.set_font("Helvetica", "", 9)
             for c in contactos:
-                # Codificación latin-1 segura para fuentes estándar de FPDF
                 nom = str(c["nombre"]).encode("latin-1", "replace").decode("latin-1")
                 tel = str(c["telefono"]).encode("latin-1", "replace").decode("latin-1")
                 cor = str(c["correo"]).encode("latin-1", "replace").decode("latin-1")
@@ -426,28 +432,29 @@ class AplicacionAgencia:
     def verificar_integridad_ui(self):
         ok, msg = self.gestor.verificar_integridad()
         if ok:
-            messagebox.showinfo("Verificacion SHA-256", msg)
+            messagebox.showinfo("Verificación SHA-256", msg)
         else:
             messagebox.showerror("Fallo de integridad", msg)
 
     def crear_respaldo_zip(self):
         if not os.path.exists(FILE_DAT) or not os.path.exists(FILE_INDEX):
-            messagebox.showwarning("Reslapdp ZIP", "Se debe tener creado 'contactos.dat' e 'indice.json' antes de crear respaldo")
+            messagebox.showwarning("Respaldo ZIP", "Se debe tener creado 'contactos.dat' e 'indice.json' antes de crear respaldo")
             return
 
         try:
-            fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            # CORRECCIÓN 6: Formato de fecha sin ":" para evitar error de nombre de archivo en Windows
+            fecha = datetime.now().strftime("%Y%m%d_%H%M%S")
             nombre_zip = f"respaldo_{fecha}.zip"
             archivos = [FILE_DAT, FILE_INDEX]
 
             tamano_original = sum(os.path.getsize(a) for a in archivos)
 
-            with zipfile.ZipFile(nombre_zip, "w", compression=zipfile.ZIP_DEFLATED)as zf:
+            with zipfile.ZipFile(nombre_zip, "w", compression=zipfile.ZIP_DEFLATED) as zf:
                 for a in archivos:
                     zf.write(a)
 
             tamano_comprimido = os.path.getsize(nombre_zip)
-            reduccion = ((tamano_original - tamano_comprimido) / tamano_original * 100) if tamano_original >0 else 0
+            reduccion = ((tamano_original - tamano_comprimido) / tamano_original * 100) if tamano_original > 0 else 0
             messagebox.showinfo(
                 "Respaldo Comprimido Creado",
                 f"Archivo: {nombre_zip}\n\n"
@@ -460,13 +467,13 @@ class AplicacionAgencia:
 
     def mostrar_info_archivo(self):
         if not os.path.exists(FILE_DAT):
-            messagebox.showwarning("Informacion", f"El archivo '{FILE_DAT}' aun no existe")
+            messagebox.showwarning("Información", f"El archivo '{FILE_DAT}' aún no existe")
             return
         try:
             info_stat = os.stat(FILE_DAT)
             fecha_mod = datetime.fromtimestamp(info_stat.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
-            perm_lectura = "si" if os.access(FILE_DAT, os.R_OK) else "No"
-            perm_escritura = "Si" if os.access(FILE_DAT, os.W_OK) else "No"
+            perm_lectura = "Sí" if os.access(FILE_DAT, os.R_OK) else "No"
+            perm_escritura = "Sí" if os.access(FILE_DAT, os.W_OK) else "No"
 
             detalle = (
                 f"Archivo: {FILE_DAT}\n"
@@ -479,6 +486,7 @@ class AplicacionAgencia:
             messagebox.showinfo("Metadatos y Permisos del Archivo", detalle)
         except Exception as e:
             messagebox.showerror("Error", str(e))
+
 
 if __name__ == "__main__":
     root = tk.Tk()
