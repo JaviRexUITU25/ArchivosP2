@@ -207,4 +207,66 @@ class AplicacionAgencia:
 
         self.root.config(menu=menubar)
 
-    pass
+    def crear_interfaz(self):
+        contenedor = ttk.Frame(self.root, padding=15)
+        contenedor.pack(fill=tk.BOTH, expand=True)
+
+        ttk.Label(contenedor, text="Gestion de contactos (Acceso Aleatorio)", style="Header.TLabel").pack(anchor="w", pady=(0,10))
+
+        form_frame = ttk.LabelFrame(contenedor, text="Datos del contacto ", padding=12)
+        form_frame.pack(fill=tk.X, pady=5)
+
+        self.var_id = tk.StringVar()
+        self.var_nom = tk.StringVar()
+        self.var_tel = tk.StringVar()
+        self.var_cor = tk.StringVar()
+        self.var_ciu = tk.StringVar()
+
+        ttk.Label(form_frame, text="ID (Entero):").grid(row=0, column=0, sticky="e", padx=5, pady=4)
+        ttk.Entry(form_frame, textvariable=self.var_id, width=15).grid(row=0, column=1, sticky="w", padx=5, pady=4)
+
+        ttk.Label(form_frame, text="Nombre (máx 30):").grid(row=0, column=2, sticky="e", padx=5, pady=4)
+        ttk.Entry(form_frame, textvariable=self.var_nom, width=32).grid(row=0, column=3, sticky="w", padx=5, pady=4)
+
+        ttk.Label(form_frame, text="Teléfono (máx 15):").grid(row=1, column=0, sticky="e", padx=5, pady=4)
+        ttk.Entry(form_frame, textvariable=self.var_tel, width=18).grid(row=1, column=1, sticky="w", padx=5, pady=4)
+
+        ttk.Label(form_frame, text="Correo (máx 25):").grid(row=1, column=2, sticky="e", padx=5, pady=4)
+        ttk.Entry(form_frame, textvariable=self.var_cor, width=32).grid(row=1, column=3, sticky="w", padx=5, pady=4)
+
+        ttk.Label(form_frame, text="Ciudad (máx 20):").grid(row=2, column=0, sticky="e", padx=5, pady=4)
+        ttk.Entry(form_frame, textvariable=self.var_ciu, width=22).grid(row=2, column=1, sticky="w", padx=5, pady=4)
+
+        # Botones
+
+        btn_frame = ttk.Frame(contenedor)
+        btn_frame.pack(fill=tk.X, pady=10)
+
+        ttk.Button(btn_frame, text="Agregar", command=self.guardar_ui).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text="Buscar por ID", command=self.buscar_ui).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text="Modificar", command=self.modificar_ui).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text="Limpiar", command=self.limpiar_form).pack(side=tk.LEFT, padx=4)
+        ttk.Button(btn_frame, text="Exportar JSON + PDF", command=self.exportar_ambos).pack(side=tk.RIGHT, padx=4)
+        ttk.Button(btn_frame, text="Respaldo ZIP", command=self.crear_respaldo_zip).pack(side=tk.RIGHT, padx=4)
+
+        columnas = ("reg", "id", "nombre", "telefono", "correo", "ciudad")
+        self.tabla = ttk.Treeview(contenedor, columns=columnas, show="headings", height=9)
+        self.tabla.heading("reg", text="# Reg")
+        self.tabla.heading("id", text="ID")
+        self.tabla.heading("nombre", text="Nombre")
+        self.tabla.heading("telefono", text="Teléfono")
+        self.tabla.heading("correo", text="Correo")
+        self.tabla.heading("ciudad", text="Ciudad")
+
+        self.tabla.column("reg", width=50, anchor="center")
+        self.tabla.column("id", width=60, anchor="center")
+        self.tabla.column("nombre", width=180)
+        self.tabla.column("telefono", width=100)
+        self.tabla.column("correo", width=170)
+        self.tabla.column("ciudad", width=120)
+        self.tabla.pack(fill=tk.BOTH, expand=True, pady=5)
+        self.tabla.bind("<<TreeviewSelect>>", self.seleccionar_fila)
+
+        self.var_status = tk.StringVar(value="Posicion del puntero (tell): 0 bytes | listo")
+        ttk.Label(self.root, textvariable=self.var_status, style="Status.TLabel", anchor="w").pack(fill=tk.X, side= tk.BOTTOM)
+
