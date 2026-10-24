@@ -82,4 +82,72 @@ class GestorArchivos:
         c_ciu = self.ajustar_campo_utf8(ciudad, 20)
         return c_id + c_nom + c_tel + c_cor + c_ciu
 
+    # Informacion del contacto
+
+    def agregar_contacto(self, id_c, nombre, tel, correo, ciudad):
+        str_id = str(id_c)
+        if str_id in self.indice:
+            raise ValueError(f"El ID {id_c} ya está registrado")
+        registro = self.formatear_registro(id_c, nombre, tel, correo, ciudad)
+
+        if not os.path.exists(FILE_DAT):
+            open(FILE_DAT, "w", encoding="utf-8").close()
+
+        with open(FILE_DAT, "r+", encoding="utf-8") as f:
+            f.seek(0, os.SEEK_END)
+            pos_inicial = f.tell()
+            num_registro = pos_inicial // RECORD_SIZE
+            f.write(registro)
+            pos_final = f.tell()
+
+        self.indice[str_id] = num_registro
+        self.guardar_indice()
+        self.actualizar_hash()
+        return num_registro, pos_inicial, pos_final
+
+    def buscar_contacto(self, id_c):
+        str_id = str(id_c)
+        if str_id not in self.indice:
+            return None, None
+
+        if not os.path.exists(FILE_DAT):
+            raise FileNotFoundError("El archivo 'contactos.dat' no existe")
+
+        num_registro = self.indice[str_id]
+        desplazamiento = num_registro * RECORD_SIZE
+
+        with open(FILE_DAT, "r", encoding="utf-8")as f:
+            f.seek(desplazamiento)
+            pos_actual = f.tell()
+            raw_bytes = f.read(RECORD_SIZE).encode("utf-8")
+        if len(raw_bytes) < RECORD_SIZE:
+            raise IOError("El registro está imcompleto o el está corrupto")
+
+        contacto = {
+            "id": int(raw_bytes[0:10].decode("utf-8", errors="ignore").strip()),
+            "nombre": raw_bytes[10:40].decode("utf-8", errors="ignore").strip(),
+            "telefono": raw_bytes[40:55].decode("utf-8", errors="ignore").strip(),
+            "correo": raw_bytes[55:80].decode("utf-8", errors="ignore").strip(),
+            "ciudad": raw_bytes[80:100].decode("utf-8", errors="ignore").strip(),
+        }
+        return contacto, pos_actual
+
+    def mod_contacto(self, id_c, nombre, tel, correo, ciudad):
+        str_id = str(id_c)
+        if str_id not in self.indice:
+            raise KeyError(f"El contado con ID {id_c} no existe")
+        if not os.path.exists(FILE_DAT):
+            raise FileNotFoundError("El archivo 'contactos.dat' no existe")
+
+        num_registros = self.indice[str_id]
+        registro_nuevo = self.formatear_registro(id_c, nombre, tel, correo, ciudad)
+
+        with open(FILE_DAT, "r+", encoding="utf-8")as f:
+            f.seek(num_registros * RECORD_SIZE)
+            pos_escritura = f.tell()
+            f.write(registro_nuevo)
+
+        self.actualizar_hash()
+        return num_registros, pos_escritura
+
     
