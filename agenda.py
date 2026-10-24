@@ -327,4 +327,58 @@ class AplicacionAgencia:
 
         except Exception as e:
             messagebox.showerror("Error de lectura", str(e))
-        
+
+
+    def modificar_ui(self):
+        try:
+            id_int, nom, tel, cor, ciu = self.validar_campos()
+            num_reg, pos_tell = self.gestor.modificar_contacto(id_int, nom, tel, cor, ciu)
+            self.var_status.set(f"Modificación in-place en Reg #{num_reg} | Sobrescrito en posición (tell): {pos_tell} bytes")
+            self.refrescar_tabla()
+            messagebox.showinfo("Éxito", f"Registro #{num_reg} sobrescrito en su lugar.\nPosición (tell): {pos_tell} bytes.")
+        except Exception as e:
+            messagebox.showerror("Error al Modificar", str(e))
+
+    def limpiar_form(self):
+        seleccion = self.tabla.selection()
+        if seleccion:
+            valores = self.tabla.item(seleccion[0], "values")
+            self.var_id.set(valores[1])
+            self.var_nom.set(valores[2])
+            self.var_tel.set(valores[3])
+            self.var_cor.set(valores[4])
+            self.var_ciu.set(valores[5])
+
+    def refrescar_tabla(self):
+        for item in self.tabla.get_children():
+            self.tabla.delete(item)
+        for id_str, num_reg in sorted(self.gestor.indice.items(), key=lambda x: x[1]):
+            try:
+                c, _ = self.gestor.buscar_contacto(id_str)
+                if c:
+                    self.tabla.insert("", tk.END, values=(num_reg, c["id"], c["nombre"], c["telefono"], c["correo"], c["ciudad"]))
+            except Exception:
+                pass
+
+    def exportar_json(self):
+        try:
+            lista = []
+            for id_str in self.gestor.indice:
+                c, _ = self.gestor.buscar_contacto(id_str)
+                if c:
+                    lista.append(c)
+            with open(FILE_EXPORT_JSON, "w", encoding="utf-8")as f:
+                json.dump(lista, f, indent=4, ensure_ascii=False)
+            messagebox.showinfo("Exportar JSON", f"se exportaron {len(lista)} contactos a '{FILE_EXPORT_JSON}'")
+            return True
+        except Exception as e:
+            messagebox.showerror("Error al exportar JSON", str(e))
+            return False
+
+    def exportar_pdf(self):
+        try:
+            if not os.path.exists(FILE_EXPORT_JSON):
+                if not self.exportar_json():
+                    return
+            with open(FILE_EXPORT_JSON, "r", encoding="utf-8") as f:
+                pass
