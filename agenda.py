@@ -458,4 +458,29 @@ class AplicacionAgencia:
         except Exception as e:
             messagebox.showerror("Error en respaldo", str(e))
 
-    
+    def mostrar_info_archivo(self):
+        if not os.path.exists(FILE_DAT):
+            messagebox.showwarning("Informacion", f"El archivo '{FILE_DAT}' aun no existe")
+            return
+        try:
+            info_stat = os.stat(FILE_DAT)
+            fecha_mod = datetime.fromtimestamp(info_stat.st_mtime).strftime("%Y-%m-%d %H:%M:%S")
+            perm_lectura = "si" if os.access(FILE_DAT, os.R_OK) else "No"
+            perm_escritura = "Si" if os.access(FILE_DAT, os.W_OK) else "No"
+
+            detalle = (
+                f"Archivo: {FILE_DAT}\n"
+                f"Tamaño total: {info_stat.st_size} bytes\n"
+                f"Registros almacenados: {info_stat.st_size // RECORD_SIZE}\n"
+                f"Última modificación: {fecha_mod}\n"
+                f"Permiso de lectura (os.R_OK): {perm_lectura}\n"
+                f"Permiso de escritura (os.W_OK): {perm_escritura}"
+            )
+            messagebox.showinfo("Metadatos y Permisos del Archivo", detalle)
+        except Exception as e:
+            messagebox.showerror("Error", str(e))
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = AplicacionAgencia(root)
+    root.mainloop()
