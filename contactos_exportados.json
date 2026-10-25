@@ -1,9 +1,16 @@
 [
     {
         "id": 1,
-        "nombre": "Pedro Lopez Hernandez",
+        "nombre": "Pedro Lopez Huertas",
         "telefono": "23433454",
         "correo": "pedritogay@gmail.com",
         "ciudad": "Quetzaltenango"
+    },
+    {
+        "id": 2,
+        "nombre": "Javier Luis pedro Rodrigo Pere",
+        "telefono": "34343434",
+        "correo": "holaqueace@gmail.com",
+        "ciudad": "Washington D.C."
     }
 ]
