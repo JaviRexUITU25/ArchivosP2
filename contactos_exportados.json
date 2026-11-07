@@ -3,7 +3,7 @@
         "id": 1,
         "nombre": "Pedro Lopez Huertas",
         "telefono": "23433454",
-        "correo": "pedritogay@gmail.com",
+        "correo": "pedritoh@gmail.com",
         "ciudad": "Quetzaltenango"
     },
     {
@@ -12,5 +12,12 @@
         "telefono": "34343434",
         "correo": "holaqueace@gmail.com",
         "ciudad": "Washington D.C."
+    },
+    {
+        "id": 3,
+        "nombre": "Rogelio Orozco",
+        "telefono": "33442232",
+        "correo": "rorozco@gmail.com",
+        "ciudad": "San Marcos"
     }
 ]
