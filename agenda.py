@@ -233,7 +233,7 @@ class AplicacionAgencia:
         ttk.Label(form_frame, text="Nombre (máx 30):").grid(row=0, column=2, sticky="e", padx=5, pady=4)
         ttk.Entry(form_frame, textvariable=self.var_nom, width=32).grid(row=0, column=3, sticky="w", padx=5, pady=4)
 
-        ttk.Label(form_frame, text="Teléfono (máx 15):").grid(row=1, column=0, sticky="e", padx=5, pady=4)
+        ttk.Label(form_frame, text="Teléfono (máx 8):").grid(row=1, column=0, sticky="e", padx=5, pady=4)
         ttk.Entry(form_frame, textvariable=self.var_tel, width=18).grid(row=1, column=1, sticky="w", padx=5, pady=4)
 
         ttk.Label(form_frame, text="Correo (máx 25):").grid(row=1, column=2, sticky="e", padx=5, pady=4)

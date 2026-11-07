@@ -19,5 +19,12 @@
         "telefono": "33442232",
         "correo": "rorozco@gmail.com",
         "ciudad": "San Marcos"
+    },
+    {
+        "id": 67,
+        "nombre": "Bernardo Arevalo",
+        "telefono": "34434555",
+        "correo": "TioBernieGt@yahoo.es",
+        "ciudad": "Ciudad De Guatemala"
     }
 ]
